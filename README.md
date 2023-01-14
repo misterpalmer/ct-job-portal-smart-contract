@@ -19,9 +19,6 @@ Our aim is to allow laborers to rise up the social ladder through this process o
 # Recommended technologies: 
 
 Smart Contract development: Solidity 
-
 IDE Tool: Remix 
-
 Blockchain: Ethereum 
-
 Server: Ganache blockchain 
