@@ -3,7 +3,7 @@ pragma solidity >=0.7.0 <0.9.0;
 
 
 contract jobPortal {
-
+    event PositionEvent(string positionId, PositionStatus positionStatus,uint timeOfEvent);
     enum jobSeekerStatus{
         SeekingEmployment,
         Employed
@@ -73,7 +73,7 @@ contract jobPortal {
     mapping (uint256 => PositionSeeker) public jobSeekers;
     mapping (uint256 => Position) public availableJobs;
     uint256[] positionKey;
-
+    string[] jobRecruitersKes;
     Position[] positions; 
 
 
@@ -105,10 +105,24 @@ contract jobPortal {
                             positionType
                             
                             );
-        positions.push(newPosition)       ;             
+        positions.push(newPosition)       ; 
+
+        //ToDo Validate this approch   
+        jobRecruitersKes.push(id);
+          uint timeStamp= block.timestamp;
+          //string positionId, PositionStatus positionStatus,uint timeOfEvent
+          emit     PositionEvent(id,PositionStatus.Created,timeStamp);
+
+        //ToDo  Create an event in order to let the web3 clients to get noitifications when a job was created        
 
     }
+/*
+1... 10M positions
+20k New position
+9M Filled 
+10K Created position
 
+*/
 
 //return all position
     function getPositions() public view returns(Position[] memory ) {
@@ -129,7 +143,13 @@ contract jobPortal {
         return availablePosition;
     }
 
-
+    function changePositionType  (string memory  positionId,PositionStatus newStatus ) public{
+            
+            //ToDo find the  position and modify the status
+            
+            uint timeStamp= block.timestamp;
+            emit PositionEvent(positionId,newStatus,timeStamp);
+    }
 
 ///All Dumy methods where we can create function for testings which we will deltele after
 
