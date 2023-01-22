@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.7.0 <0.9.0;
 
-
 contract jobPortal {
     
     /* Events */
-    event PositionEvent(string positionId, PositionStatus positionStatus, uint timeOfEvent);
+    event PositionEvent(uint id, PositionStatus positionStatus, uint timeOfEvent);
     
     /* Enums / Structs */
     enum SeekerEmploymentStatus {
@@ -50,7 +49,7 @@ contract jobPortal {
     }
 
     struct Position {
-        string id;
+        uint id;
         address recuiter;
         string title;
         string description;
@@ -86,7 +85,6 @@ contract jobPortal {
     }
 */
     function createPosition (
-        string memory id,
         address recruiter,
         string memory title,
         string memory description,
@@ -96,7 +94,7 @@ contract jobPortal {
         PositionType positionType
     ) public {
         Position memory position = 
-            Position(id,
+            Position(positionList.length,
                 recruiter,
                 title,
                 description,
@@ -106,9 +104,10 @@ contract jobPortal {
                 positionSite,
                 positionType
             );
+
         positionList.push(position); 
         recruiterKeys.push(recruiter);
-        emit PositionEvent(id, PositionStatus.Created, block.timestamp);
+        emit PositionEvent(position.id, position.status, block.timestamp);
         // todo create an event in order to let the web3 clients to get noitifications when a job was created
     }
 
@@ -116,26 +115,28 @@ contract jobPortal {
         return positionList;
     } 
 
-    function getAvailablePositions() public  view returns (Position[] memory ) {
+    function getAvailablePositions() public view returns (Position[] memory ) {
         Position[]  memory  availablePosition;
-        uint j=0;
 
-        for(uint i=0;i<positionList.length;i++)
+        for(uint i = 0; i < positionList.length;)
         {
-            if (positions[i].status==PositionStatus.Available){
-                 availablePosition[j]=(positions[i]);
+            uint j = 0;
+            if (positionList[i].status == PositionStatus.Available) {
+                 availablePosition[j] = positionList[i];
                  j++;
             }
+            i++;
         }
         return availablePosition;
     }
 
-    function changePositionType  (string memory  positionId,PositionStatus newStatus ) public{
-        // todo find the  position and modify the status
-        emit PositionEvent(positionId, newStatus, block.timestamp);
+    function changePositionStatus  (uint id, PositionStatus status ) public {
+        // todo find the position and modify the status
+        positions[id].status = status;
+        emit PositionEvent(id, status, block.timestamp);
     }
 
-    function getNumberOfPositions() public view  returns (uint){
+    function getNumberOfPositions() public view  returns (uint) {
         return positionList.length;
     }
 }
