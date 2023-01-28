@@ -1,10 +1,9 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.7.0 <0.9.0;
 
+contract JobPortal {
 
-contract jobPortal {
-    event PositionEvent(string positionId, PositionStatus positionStatus,uint timeOfEvent);
-    enum jobSeekerStatus{
+    enum JobSeekerStatus{
         SeekingEmployment,
         Employed
     }
@@ -28,149 +27,146 @@ contract jobPortal {
         W2
     }
 
-    struct Recruiter{
-        address walletAddress;
-        string companyName;
-        string companyLocation;
-        string recruiterName;
-        string website;
-        string recruiterID;
-    }
+    struct Recruiter {
+        string Name;
+        string Email;
+        string Phone;
+        string Organization;
+        string Address;
 
-    struct PositionSeeker{
-        address walletAddress;
-        string personalLocation;
-        string name;
-        uint256 phoneNumber;
-        string email;
-
-        // jobSeekerStatus _jobSeekerStatus; // may need to check on the style of declaration here
-    }
-
-    struct Position{
-        // 
-        string id;
-        address recuiterWalletAddress;
-        string title;
-        string description;
-        string requirements;
-        string[] skills;
-        PositionStatus status;
-        PositionSite site;
-        PositionType _type;
+        uint[] PositionKeys;
     }
 
     struct Candidate{
-        // candidates applying for the job
-        string positionID;
-       // string candidateAddress; We do not know the reason for this field, 
-        string appliedDate;
-        address jobSeekerWalletAddress;
-    }
-
-    // adding mapping for each of the structures
-    mapping (uint256 => Recruiter) public jobRecruiters;
-    mapping (uint256 => PositionSeeker) public jobSeekers;
-    mapping (uint256 => Position) public availableJobs;
-    uint256[] positionKey;
-    string[] jobRecruitersKes;
-    Position[] positions; 
-
-
-    mapping (uint256 => Candidate) public jobCandidates;
-/*
-    function registerJobSeeker (jobSeeker memory _jobSeeker, string memory name, uint index) public {
+        string Name;
+        string Email;
+        string Phone;
+        string Skills;
+        string CandidateAddress;        
         
-        jobSeekers[index] = _jobSeeker;
+        uint8 Experience;
+    }
+
+    struct Position{
+        string Title;
+        string Skills;
+        string Description;
         
+        PositionSite Site;
+        PositionStatus Status;
+        PositionType PositionType;
 
-
+        address[] AppliedCandidates;
     }
-    */
-    function createPosition (
-      string memory id,
-        address recuiterWalletAddress,
-        string memory title,
-        string memory description,
-        string memory requirements,
-        string[] memory skills,
-        PositionSite positionSite,
-        PositionType positionType
 
-    ) public {
-      Position memory newPosition= Position(id,
-                            recuiterWalletAddress,title,description,requirements,skills,
-                            PositionStatus.Created,
-                            positionSite,
-                            positionType
-                            
-                            );
-        positions.push(newPosition)       ; 
+    mapping (uint => Position) private Positions;
+    mapping (address => Candidate) private Candidates;
+    mapping (address => Recruiter) private JobRecruiters;   
+    
+    address[] private RecruiterKeys;
+    address[] private CandidateKeys;
 
-        //ToDo Validate this approch   
-        jobRecruitersKes.push(id);
-          uint timeStamp= block.timestamp;
-          //string positionId, PositionStatus positionStatus,uint timeOfEvent
-          emit     PositionEvent(id,PositionStatus.Created,timeStamp);
-
-        //ToDo  Create an event in order to let the web3 clients to get noitifications when a job was created        
-
+    function RegisterRecruiter(address walletAddress, string memory name, string memory email, string memory phone, string memory organization, string memory companyAddress)
+    public {
+        JobRecruiters[walletAddress].Name = name;
+        JobRecruiters[walletAddress].Email = email;
+        JobRecruiters[walletAddress].Phone = phone;
+        JobRecruiters[walletAddress].Organization = organization; 
+        JobRecruiters[walletAddress].Address = companyAddress;
+        RecruiterKeys.push(walletAddress);
     }
-/*
-1... 10M positions
-20k New position
-9M Filled 
-10K Created position
 
-*/
-
-//return all position
-    function getPositions() public view returns(Position[] memory ) {
-        return positions;
-    } 
-
-    function getAvailablePositions() public  view returns (Position[] memory ) {
-      Position[]  memory  availablePosition;
-    uint j=0;// the position for the new array
-        for(uint i=0;i<positions.length;i++)
-        {
-            if (positions[i].status==PositionStatus.Available){
-
-                 availablePosition[j]=(positions[i]);
-                 j++;
-            }
+    function GetRecruiter(address walletAddress) public view returns (string memory, string memory, string memory, string memory, string memory) {
+        unchecked {
+            return (
+                JobRecruiters[walletAddress].Name,
+                JobRecruiters[walletAddress].Email,
+                JobRecruiters[walletAddress].Phone,
+                JobRecruiters[walletAddress].Organization,
+                JobRecruiters[walletAddress].Address
+            );
         }
-        return availablePosition;
     }
 
-    function changePositionType  (string memory  positionId,PositionStatus newStatus ) public{
-            
-            //ToDo find the  position and modify the status
-            
-            uint timeStamp= block.timestamp;
-            emit PositionEvent(positionId,newStatus,timeStamp);
+    function GetRecruiters() public view returns(Recruiter[] memory){
+        unchecked {
+            uint count = RecruiterKeys.length;
+            Recruiter[] memory recruiters = new Recruiter[](count);
+            for(uint index = 0; index < count; index++) {
+                recruiters[index] = JobRecruiters[RecruiterKeys[index]];
+            }
+            return recruiters;
+        }        
     }
 
-///All Dumy methods where we can create function for testings which we will deltele after
+    function PostJob(address recruiterAddress, uint256 id, string memory title, string memory description, string memory skills, PositionStatus status, PositionSite site, PositionType positionType)
+    public
+    {
+        unchecked
+        {
+            Positions[id].Site = site;
+            Positions[id].Title = title;
+            Positions[id].Skills = skills;
+            Positions[id].Status = status;
+            Positions[id].Description = description;
+            Positions[id].PositionType = positionType;
 
-
-function getNumberOfPositions() public view  returns (uint){
-    return positions.length;
-}
-
-    /**
-     * @dev Store value in variable
- 
-    function store(uint256 num) public {
-        number = num;
+            JobRecruiters[recruiterAddress].PositionKeys.push(id);
+        }
     }
 
-    /**
-     * @dev Return value 
-     * @return value of 'number'
-    function retrieve() public view returns (uint256){
-        return number;
+    function GetJobPostsByRecruiter(address recruiterAddress) public view returns (Position[] memory)
+    {
+        unchecked
+        {
+            uint count = JobRecruiters[recruiterAddress].PositionKeys.length;
+            Position[] memory positions = new Position[](count);
+
+            for (uint index = 0; index < count; index++)
+            {
+                positions[index] = Positions[JobRecruiters[recruiterAddress].PositionKeys[index]];
+            }
+            return positions;
+        }
     }
-        * @param num value to store
-     */
+
+    function RegisterCandidate(address walletAddress, string memory name, string memory email, string memory candidateAddress, string memory phone, string memory skills, uint8 experience)
+    public
+    {
+        unchecked
+        {
+            Candidates[walletAddress].Name = name;
+            Candidates[walletAddress].Email = email;
+            Candidates[walletAddress].Phone = phone;
+            Candidates[walletAddress].Skills = skills;
+            Candidates[walletAddress].Experience = experience;
+            Candidates[walletAddress].CandidateAddress = candidateAddress;
+            CandidateKeys.push(walletAddress);
+        }
+    }
+
+    function Apply(address candidateAddress, uint positionID) public
+    {
+        unchecked
+        {
+            Positions[positionID].AppliedCandidates.push(candidateAddress);
+        }
+    }
+
+    function GetCandidatesByJob(address recruiterAddress, uint positionID) public view returns (Candidate[] memory)
+    {
+        unchecked
+        {
+            address[] memory appliedCandiateKeys = Positions[JobRecruiters[recruiterAddress].PositionKeys[positionID]].AppliedCandidates;
+            uint count = appliedCandiateKeys.length;
+            Candidate[] memory appliedCandiates = new Candidate[](count);
+
+            for(uint index = 0; index < count; index++)
+            {
+                appliedCandiates[index] = Candidates[appliedCandiateKeys[index]];
+            }
+
+            return appliedCandiates;
+        }
+    }
 }
